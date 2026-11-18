@@ -10,6 +10,7 @@ import jakarta.persistence.Persistence;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class IntegrationOpenFoodFacts {
@@ -17,6 +18,8 @@ public class IntegrationOpenFoodFacts {
     public static void main(String[] args) throws IOException {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("traitement-fichier-jpa");
         EntityManager em = emf.createEntityManager();
+
+        long debut = System.currentTimeMillis();
 
         CategorieDAO categorieDao = new CategorieDAO(em);
         MarqueDAO marqueDao = new MarqueDAO(em);
@@ -53,6 +56,13 @@ public class IntegrationOpenFoodFacts {
         additifDao.insererTous(nomsAdditif);
         em.getTransaction().commit();
 
+        Map<String, Integer> idsCategories = categorieDao.ids();
+
+        Map<String, Integer> idsMarques = marqueDao.ids();
+        Map<String, Integer> idsIngredients = ingredientDao.ids();
+        Map<String, Integer> idsAllergenes = allergeneDao.ids();
+        Map<String, Integer> idsAdditifs = additifDao.ids();
+
         em.getTransaction().begin();
 
         Set<String> produitsExistants = produitDao.clesExistantes();
@@ -74,19 +84,19 @@ public class IntegrationOpenFoodFacts {
             produit.setEnergie(LecteurCsv.toDouble(c[5]));
             produit.setGraisse(LecteurCsv.toDouble(c[6]));
             produit.setHuilePalme(c[27].trim().equals("1"));
-            produit.setCategorie(categorieDao.findByNom(LecteurCsv.normaliser(c[0])));
-            produit.setMarque(marqueDao.findByNom(nomMarque));
+            produit.setCategorie(categorieDao.findById(idsCategories.get(LecteurCsv.normaliser(c[0]))));
+            produit.setMarque(marqueDao.findById(idsMarques.get(nomMarque)));
 
             for (String nom : LecteurCsv.ingredients(c[4])) {
-                Ingredient i = ingredientDao.findByNom(nom);
-                if (i != null) produit.getIngredients().add(i);
+                Ingredient i = ingredientDao.findById(idsIngredients.get(nom));
+                if (i != null)  produit.getIngredients().add(i);
             }
             for (String nom : LecteurCsv.allergenes(c[28])) {
-                Allergene a = allergeneDao.findByNom(nom);
+                Allergene a = allergeneDao.findById(idsAllergenes.get(nom));
                 if (a != null) produit.getAllergenes().add(a);
             }
             for (String nom : LecteurCsv.additifs(c[29])) {
-                Additif a = additifDao.findByNom(nom);
+                Additif a = additifDao.findById(idsAdditifs.get(nom));
                 if (a != null) produit.getAdditifs().add(a);
             }
 
@@ -102,7 +112,8 @@ public class IntegrationOpenFoodFacts {
 
         em.getTransaction().commit();
         System.out.println(compteur + " produits insérés au total");
-
+        System.out.println("Durée : " + (System.currentTimeMillis() - debut) / 1000 + " s");
+        System.out.println(emf.getCache().contains(Marque.class, 1));
 
         em.close();
         emf.close();

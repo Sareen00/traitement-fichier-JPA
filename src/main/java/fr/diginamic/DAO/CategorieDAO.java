@@ -3,8 +3,10 @@ package fr.diginamic.DAO;
 import fr.diginamic.entity.Categorie;
 import jakarta.persistence.EntityManager;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class CategorieDAO {
@@ -14,11 +16,17 @@ public class CategorieDAO {
         this.entityManager = entityManager;
     }
 
-    public Categorie findByNom(String nom) {
-        List<Categorie> res = entityManager.createQuery("SELECT c FROM Categorie c WHERE c.nom = :nom", Categorie.class)
-                .setParameter("nom", nom)
-                .getResultList();
-        return res.isEmpty() ? null : res.get(0);
+    public Categorie findById(Integer id) {
+        return id == null ? null : entityManager.find(Categorie.class, id);
+    }
+
+    public Map<String, Integer> ids() {
+        Map<String, Integer> ids = new HashMap<>();
+        List<Object[]> res = entityManager.createQuery("SELECT c.nom, c.id FROM Categorie c", Object[].class).getResultList();
+        for (Object[] ligne : res) {
+            ids.put((String) ligne[0], (Integer) ligne[1]);
+        }
+        return ids;
     }
 
     public void insererTous(Set<String> noms) {

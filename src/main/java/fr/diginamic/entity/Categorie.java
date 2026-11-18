@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Cacheable
 public class Categorie {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)

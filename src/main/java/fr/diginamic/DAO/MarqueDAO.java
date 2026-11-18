@@ -4,8 +4,10 @@ import fr.diginamic.entity.Marque;
 import fr.diginamic.entity.Produit;
 import jakarta.persistence.EntityManager;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class MarqueDAO {
@@ -15,11 +17,17 @@ public class MarqueDAO {
         this.entityManager = entityManager;
     }
 
-    public Marque findByNom(String nom) {
-        List<Marque> res = entityManager.createQuery("SELECT m FROM Marque m WHERE m.nom = :nom", Marque.class)
-                .setParameter("nom", nom)
-                .getResultList();
-        return res.isEmpty() ? null : res.getFirst();
+    public Marque findById(Integer id) {
+        return id == null ? null : entityManager.find(Marque.class, id);
+    }
+
+    public Map<String, Integer> ids() {
+        Map<String, Integer> ids = new HashMap<>();
+        List<Object[]> res = entityManager.createQuery("SELECT m.nom, m.id FROM Marque m", Object[].class).getResultList();
+        for (Object[] ligne : res) {
+            ids.put((String) ligne[0], (Integer) ligne[1]);
+        }
+        return ids;
     }
 
     public void insererTous(Set<String> noms) {

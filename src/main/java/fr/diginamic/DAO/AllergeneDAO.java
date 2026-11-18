@@ -3,8 +3,10 @@ package fr.diginamic.DAO;
 import fr.diginamic.entity.Allergene;
 import jakarta.persistence.EntityManager;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class AllergeneDAO {
@@ -14,11 +16,18 @@ public class AllergeneDAO {
         this.entityManager = entityManager;
     }
 
-    public Allergene findByNom(String nom) {
-        List<Allergene> res = entityManager.createQuery("SELECT a FROM Allergene a WHERE a.nom = :nom", Allergene.class)
-                .setParameter("nom", nom)
-                .getResultList();
-        return res.isEmpty() ? null : res.get(0);
+
+    public Allergene findById(Integer id) {
+        return id == null ? null : entityManager.find(Allergene.class, id);
+    }
+
+    public Map<String, Integer> ids() {
+        Map<String, Integer> ids = new HashMap<>();
+        List<Object[]> res = entityManager.createQuery("SELECT a.nom, a.id FROM Allergene a", Object[].class).getResultList();
+        for (Object[] ligne : res) {
+            ids.put((String) ligne[0], (Integer) ligne[1]);
+        }
+        return ids;
     }
 
     public void insererTous(Set<String> noms) {
